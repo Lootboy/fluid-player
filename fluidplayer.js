@@ -919,22 +919,16 @@ var fluidPlayerClass = {
         var handleXmlHttpReq = function () {
             var xmlHttpReq = this;
 
-
-            if (xmlHttpReq.readyState === 4 && xmlHttpReq.status === 404) {
-                player.stopProcessAndReportError(adListId);
+            if (xmlHttpReq.readyState !== 4) {
                 return;
             }
 
-            if (xmlHttpReq.readyState === 4 && xmlHttpReq.status === 0) {
-                player.stopProcessAndReportError(adListId); //Most likely that Ad Blocker exists
+            if (xmlHttpReq.status === 204) {
+                player.stopProcessAndReportError(adListId, 303);
                 return;
             }
 
-            if (!((xmlHttpReq.readyState === 4) && (xmlHttpReq.status === 200))) {
-                return;
-            }
-
-            if ((xmlHttpReq.readyState === 4) && (xmlHttpReq.status !== 200)) {
+            if (xmlHttpReq.status !== 200) {
                 player.stopProcessAndReportError(adListId);
                 return;
             }
@@ -991,7 +985,7 @@ var fluidPlayerClass = {
      *
      * @param adListId
      */
-    stopProcessAndReportError: function(adListId) {
+    stopProcessAndReportError: function(adListId, errorCode) {
         var player = this;
 
         //Set the error flag for the Ad
@@ -1000,7 +994,7 @@ var fluidPlayerClass = {
         //The response returned an error. Proceeding with the main video.
         //Try to switch main video only if it is a preRoll scenario
         if (typeof adListId !== 'undefined' && player.adList[adListId]['roll'] == 'preRoll') {
-            player.playMainVideoWhenVastFails(900);
+            player.playMainVideoWhenVastFails(errorCode || 900);
         } else {
             player.announceLocalError(101);
         }
